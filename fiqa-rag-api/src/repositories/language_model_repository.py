@@ -23,5 +23,5 @@ class LanguageModelRepository(LoggerMixIn):
         self._logger.info(f"Dispatching completion request to Groq API using model hierarchy: '{model_name}'")
         formatted_user_prompt = self._user_context_template_prompt.format(context=retrieved_context, query=user_query)
         api_response = self._groq_client.chat.completions.create(model=model_name, messages=[{"role": "system", "content": self._system_instruction_prompt},{"role": "user", "content": formatted_user_prompt}],
-                                                                 temperature=self._settings.model_temperature,  max_completion_tokens=self._settings.max_completion_tokens, reasoning_effort=self._settings.reasoning_effort_level
+                                                                 temperature=self._settings.model_temperature,  max_completion_tokens=self._settings.max_completion_tokens, reasoning_effort=self._settings.reasoning_effort_level)
         return api_response.choices[0].message.content
