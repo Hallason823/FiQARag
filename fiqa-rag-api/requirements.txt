@@ -1,0 +1,4 @@
+datasets>=2.16.0
+huggingface-hub>=0.20.0
+fsspec>=2023.10.0
+aiohttp>=3.9.0
