@@ -43,7 +43,7 @@ START --> retrieve --> decision (Score >= 0.50?)
 Create a `.env` file in the root directory and map the parameters according to your specific environment structure:
 
 ```text
-GROQ_API_KEY=your_secret_groq_api_key
+GROQ_API_KEY=<secret_groq_api_key>
 GROQ_MODEL_NAME=qwen/qwen3.8-27b
 MODEL_TEMPERATURE=0.0
 MAX_TOKENS=300
@@ -74,13 +74,13 @@ python src/main.py
 Build the lightweight container image locally:
 
 ```bash
-docker build -t fiqa-rag-backend-api .
+docker build -t fiqa-rag-api .
 ```
 
 Run the container instance while injecting your environment configurations:
 
 ```bash
-docker run -d --name fiqa-backend-service -p 8000:8000 --env-file .env fiqa-rag-backend-api
+docker run -d --name fiqa-backend-service -p 8000:8000 --env-file .env fiqa-rag-api
 ```
 
 Once the logging prints that the FAISS index is successfully populated, the Uvicorn web engine will activate the server on port `8000`.
