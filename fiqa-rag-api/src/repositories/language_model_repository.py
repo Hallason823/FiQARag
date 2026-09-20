@@ -2,6 +2,7 @@ import json
 from typing import Any
 from groq import Groq
 from src.processors.logger_mix_in import LoggerMixIn
+from src.models.application_settings import ApplicationSettings
 
 class LanguageModelRepository(LoggerMixIn):
     def __init__(self) -> None:

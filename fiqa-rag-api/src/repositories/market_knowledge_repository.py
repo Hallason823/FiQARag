@@ -3,6 +3,7 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 from src.processors.logger_mix_in import LoggerMixIn
+from src.models.application_settings import ApplicationSettings
 
 class MarketKnowledgeRepository(LoggerMixIn):
     def __init__(self) -> None:
