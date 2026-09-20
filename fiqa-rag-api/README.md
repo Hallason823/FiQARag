@@ -83,6 +83,12 @@ Run the container instance while injecting your environment configurations:
 docker run -d --name fiqa-backend-service -p 8000:8000 --env-file .env fiqa-rag-api
 ```
 
+Monitor the background database seeding task and matrix computation progress:
+
+```bash
+docker logs -f fiqa-backend-service
+```
+
 Once the logging prints that the FAISS index is successfully populated, the Uvicorn web engine will activate the server on port `8000`.
 
 ### 4. Test the REST Interface
