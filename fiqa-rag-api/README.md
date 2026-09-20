@@ -55,18 +55,32 @@ DEFAULT_SEARCH_LIMIT=3
 EVIDENCE_THRESHOLD_SCORE=0.5
 ```
 
-### 2. Install Dependencies
+### 2. Local Setup and Execution
+
+Install the dependencies into your environment:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Launch the Application Server
-
-Run the unified entrypoint script to execute the bulk database seeder task manager and lift the API online:
+Launch the unified entrypoint script to execute the bulk database seeder task manager and lift the API server online:
 
 ```bash
 python src/main.py
+```
+
+### 3. Containerized Setup via Docker
+
+Build the lightweight container image locally:
+
+```bash
+docker build -t fiqa-rag-backend-api .
+```
+
+Run the container instance while injecting your environment configurations:
+
+```bash
+docker run -d --name fiqa-backend-service -p 8000:8000 --env-file .env fiqa-rag-backend-api
 ```
 
 Once the logging prints that the FAISS index is successfully populated, the Uvicorn web engine will activate the server on port `8000`.
