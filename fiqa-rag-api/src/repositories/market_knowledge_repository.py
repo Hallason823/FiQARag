@@ -5,12 +5,9 @@ from sentence_transformers import SentenceTransformer
 from src.processors.logger_mix_in import LoggerMixIn
 
 class MarketKnowledgeRepository(LoggerMixIn):
-
-    EMBEDDING_MODEL_REGISTRY: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    DEFAULT_TOP_K: int = 3
-
     def __init__(self) -> None:
-        self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL_REGISTRY)
+        self._settings = ApplicationSettings()
+        self._embedding_model = SentenceTransformer(self._settings.EMBEDDING_MODEL_REGISTRY)
         self._vector_index = None
         self._indexed_chunks_metadata = []
 
@@ -27,7 +24,7 @@ class MarketKnowledgeRepository(LoggerMixIn):
         self._logger.info("FAISS vector index successfully populated.")
 
     def find_similar_chunks(self, user_query: str, top_k: int = None) -> List[Dict[str, Any]]:
-        search_limit = top_k if top_k is not None else self.DEFAULT_TOP_K
+        search_limit = top_k if top_k is not None else self._settings.default_top_k
         self._logger.info(f"Searching FAISS index for query similarity: '{user_query}' with limit: {search_limit}")
         query_embedding = self._embedding_model.encode([user_query], normalize_embeddings=True).astype("float32")
         similarity_scores, matrix_indices = self._vector_index.search(query_embedding, search_limit)

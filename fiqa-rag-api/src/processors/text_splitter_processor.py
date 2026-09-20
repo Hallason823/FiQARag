@@ -1,19 +1,19 @@
 from typing import List, Dict, Any, Generator, Tuple
 from src.processors.logger_mix_in import LoggerMixIn
+from src.models.application_settings import ApplicationSettings
 
 class TextSplitterProcessor(LoggerMixIn):
-
-    DEFAULT_CHUNK_SIZE: int = 55
-    DEFAULT_CHUNK_OVERLAP: int = 12
+    def __init__(self) -> None:
+        self._settings = ApplicationSettings()
 
     def _calculate_window_indices(self, total_words: int) -> Generator[Tuple[int, int], None, None]:
         window_start_index = 0
         while window_start_index < total_words:
-            window_end_index = min(window_start_index + self.DEFAULT_CHUNK_SIZE, total_words)
+            window_end_index = min(window_start_index + self._settings.default_chunk_size, total_words)
             yield window_start_index, window_end_index
             if window_end_index == total_words:
                 break
-            window_start_index += self.DEFAULT_CHUNK_SIZE - self.DEFAULT_CHUNK_OVERLAP
+            window_start_index += self._settings.default_chunk_size - self._settings.default_chunk_overlap
 
     def _build_chunk_payload(self, document_id: str, title: str, text: str, sequence_number: int) -> Dict[str, Any]:
         return {"chunk_id": f"{document_id}_c{sequence_number}", "documento_id": document_id, "titulo": title, "texto": text}
