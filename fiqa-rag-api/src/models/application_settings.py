@@ -22,15 +22,15 @@ class ApplicationSettings:
 
     @property
     def model_temperature(self) -> float:
-        return float(os.getenv("GROQ_MODEL_TEMPERATURE", "0.0"))
+        return float(os.getenv("MODEL_TEMPERATURE", "0.0"))
 
     @property
     def max_completion_tokens(self) -> int:
-        return int(os.getenv("GROQ_MAX_TOKENS", "300"))
+        return int(os.getenv("MAX_TOKENS", "300"))
 
     @property
     def reasoning_effort_level(self) -> str:
-        return os.getenv("GROQ_REASONING_EFFORT", "none")
+        return os.getenv("REASONING_EFFORT", "none")
 
     @property
     def default_chunk_size(self) -> int:
