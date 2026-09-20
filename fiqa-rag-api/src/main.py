@@ -1,67 +1,27 @@
-import logging
 import os
 import sys
+import uvicorn
+from fastapi import FastAPI
 from dotenv import load_dotenv
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.repositories.source_dataset_repository import SourceDatasetRepository
-from src.processors.text_splitter_processor import TextSplitterProcessor
 from src.repositories.market_knowledge_repository import MarketKnowledgeRepository
 from src.repositories.language_model_repository import LanguageModelRepository
-from src.services.rag_service import RAGService
+from src.services.market_expert_service import MarketExpertService
+from src.controllers.financial_analyst_controller import FinancialAnalystController
 
-def main() -> None:
+def create_application() -> FastAPI:
     load_dotenv()
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    
-    data_repository = SourceDatasetRepository()
-    text_splitter = TextSplitterProcessor()
-    vector_repository = MarketKnowledgeRepository()
+    app = FastAPI(title="FiQA Agntic RAG API", version="1.0.0", docs_url="/api/docs")
+    knowledge_repository = MarketKnowledgeRepository()
     llm_repository = LanguageModelRepository()
-    
-    try:
-        raw_documents = data_repository.get_raw_documents()
-        print(f"Total Source Documents Available: {len(raw_documents)}")
-        
-        all_chunks = []
-        sample_limit = 1000
-        sample_doc_ids = list(raw_documents.keys())[:sample_limit]
-        print(f"Processing chunking for a sample of {sample_limit} documents...")
-        
-        for doc_id in sample_doc_ids:
-            target_doc = raw_documents[doc_id]
-            chunks = text_splitter.split_text(
-                document_id=doc_id,
-                title=target_doc.get("title", ""),
-                text=target_doc.get("text", "")
-            )
-            all_chunks.extend(chunks)
-            
-        print(f"Total Chunks Generated: {len(all_chunks)}")
-        vector_repository.save_document_chunks(all_chunks)
-        print("Successfully saved and indexed all chunks in FAISS database.\n")
-        
-        rag_service = RAGService(vector_repository, llm_repository)
-        
-        user_query = "Should a company be expected to provide on-the-job training to its workers?"
-        print(f"Executing LangGraph pipeline for query: '{user_query}'")
-        
-        result = rag_service.answer_query(user_query)
-        
-        print("\n=======================================================================")
-        print("RETRIEVED CONTEXT")
-        print("=======================================================================")
-        print(result["context_string"])
-        print("=======================================================================\n")
-        print("=======================================================================")
-        print("FINAL AI RESPONSE (VIA LANGGRAPH)")
-        print("=======================================================================")
-        print(result["answer"])
-        print("=======================================================================")
-        
-    except Exception as error:
-        print(f"Error executing main integration test pipeline: {error}")
+    expert_service = MarketExpertService(knowledge_repository=knowledge_repository, llm_repository=llm_repository)
+    financial_controller = FinancialAnalystController(expert_service=expert_service)
+    app.include_router(financial_controller.router, prefix="/api/v1")
+    return app
+
+app = create_application()
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
