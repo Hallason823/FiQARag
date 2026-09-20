@@ -31,4 +31,4 @@ class LanguageModelRepository(LoggerMixIn):
         formatted_user_prompt = self._user_context_template_prompt.format(context=retrieved_context, query=user_query)
         api_response = self._groq_client.chat.completions.create(model=model_name, messages=[{"role": "system", "content": self._system_instruction_prompt},{"role": "user", "content": formatted_user_prompt}],
                                                                  temperature=self.MODEL_TEMPERATURE, max_completion_tokens=self.MAX_COMPLETION_TOKENS, reasoning_effort=self.REASONING_EFFORT_LEVEL)
-        return api_response.choices.message.content
+        return api_response.choices[0].message.content
