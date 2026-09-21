@@ -6,10 +6,10 @@ Sistema de Recuperacao Aumentada por Geracao (RAG) especializado em financas cor
 
 ## Integrantes da Equipe
 
-- Vinícius de Almeida Silva - [Matricula / R.A.00000855166]
-- Hallason Matias - [Matricula / R.A.]
-- Arthur - [Matricula / R.A.]
-- Dayvson - [Matricula / R.A.]
+- Vinícius de Almeida Silva
+- Hallason Matias
+- Arthur 
+- Dayvson 
 
 ---
 
