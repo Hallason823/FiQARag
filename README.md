@@ -10,8 +10,8 @@ Sistema de Recuperação Aumentada por Geração (RAG) especializado em finança
 
 * Vinícius de Almeida Silva
 * Hallason Matias
-* Arthur
-* Dayvson
+* Arthur Azevedo
+* Dayvson da Conceição
 
 ---
 
