@@ -8,24 +8,24 @@ Sistema de Recuperacao Aumentada por Geracao (RAG) especializado em financas cor
 
 - Vinícius de Almeida Silva
 - Hallason Matias
-- Arthur 
-- Dayvson 
+- Arthur
+- Dayvson
 
 ---
 
 ## Matriz de Conformidade com os Requisitos da Atividade
 
-| Requisito Solicitado | Implementacao no Projeto
+| Requisito Solicitado | Implementacao no Projeto | Status |
 | :--- | :--- | :--- |
-| **Trabalho em Equipe e Entrega** | Repositorio estruturado para submissao via Teams. 
-| **Motor do Chatbot** | Utilizacao da API da Groq com o modelo Llama-3 (sem uso de ChatGPT nativo). 
-| **Memoria Gerenciada pelo Backend** | Modulo `TaskMemoryService` centralizado no backend, controlando historico e turnos sem delegar persistencia ao modelo. 
-| **Isolamento de Contextos por Tasks** | Cada interacao esta associada a um `task_id`. Usuarios com identificadores distintos nao compartilham contexto de conversa. 
-| **Base de Dados Especializada** | Uso do dataset `FiQA (Financial Opinion QA)` do benchmark BeIR, armazenado localmente para o pipeline de RAG. 
-| **Tecnologias do Backend** | Python 3.11, FastAPI, orquestracao via LangGraph e indexacao vetorial com FAISS CPU. 
-| **Frontend Livre e Amigavel** | Interface web construida em Streamlit com suporte a selecao de perguntas, exibicao de fontes e controle de sessao. 
-| **Execucao e Reproducibilidade** | `docker-compose.yml` completo orquestrando backend e frontend em contêineres isolados. 
-| **Documentacao e Dependencias** | `README.md` explicativo, arquivos de configuracao (`requirements.txt`, Dockerfiles) e modelo de variaveis (`.env.example`). 
+| **Trabalho em Equipe e Entrega** | Repositorio estruturado para submissao da atividade. | Conforme |
+| **Motor do Chatbot** | Utilizacao da API da Groq com o modelo Llama-3 (sem uso de ChatGPT nativo). | Conforme |
+| **Memoria Gerenciada pelo Backend** | Modulo `TaskMemoryService` centralizado no backend, controlando historico e turnos sem delegar persistencia ao modelo. | Conforme |
+| **Isolamento de Contextos por Tasks** | Cada interacao esta associada a um `task_id`. Usuarios com identificadores distintos nao compartilham contexto de conversa. | Conforme |
+| **Base de Dados Especializada** | Uso do dataset `FiQA (Financial Opinion QA)` do benchmark BeIR, armazenado localmente para o pipeline de RAG. | Conforme |
+| **Tecnologias do Backend** | Python 3.11, FastAPI, orquestracao via LangGraph e indexacao vetorial com FAISS CPU. | Conforme |
+| **Frontend Livre e Amigavel** | Interface web modularizada construida em Streamlit com suporte a selecao de perguntas, exibicao de fontes e gestao de sessao. | Conforme |
+| **Execucao e Reproducibilidade** | `docker-compose.yml` completo orquestrando backend e frontend em contentores isolados. | Conforme |
+| **Documentacao e Dependencias** | `README.md` explicativo, ficheiros de configuracao (`requirements.txt`, Dockerfiles) e modelo de variaveis (`.env.example`). | Conforme |
 
 ---
 
@@ -35,7 +35,7 @@ O sistema opera sob uma arquitetura desacoplada em duas camadas principais (API 
 
 ### 1. Ingestao e Indexacao Vetorial (FAISS)
 - **Fonte de Dados:** Coleta dos documentos e passagens do dataset financeiro FiQA.
-- **Divisao de Texto (Chunking):** O processador quebra os textos em blocos semanticos delimitados para assegurar alta precisao de busca.
+- **Divisao de Texto (Chunking):** O processador divide os textos em blocos semanticos delimitados para assegurar alta precisao de busca.
 - **Geracao de Embeddings:** O modelo `SentenceTransformer` mapeia o significado financeiro de cada fragmento em vetores densos.
 - **Armazenamento:** O FAISS (Facebook AI Similarity Search) indexa e recupera por similaridade de cosseno/L2 os fragmentos mais relevantes com baixa latencia.
 
@@ -52,10 +52,12 @@ O fluxo cognitivo e estruturado como uma maquina de estados direcionada (`StateG
 - **generate_answer_node:** Submete o prompt sintetizado ao Llama-3 via Groq.
 - **handle_abstention_node:** Retorna resposta padrao de ausencia de informacao caso a base nao contenha subsidios suficientes.
 
-### 4. Interface Web (Streamlit)
-- Permite submeter perguntas manuais ou via chips pre-configurados.
-- Exibe a resposta final e um componente expansivel detalhando os documentos exatos (`Doc ID` e conteudo) usados como fonte.
-- Fornece botao de renovacao de sessao que instancia um novo `task_id` sem reiniciar o servico.
+### 4. Interface Web Modularizada (Streamlit)
+- **config.py:** Centralizacao de constantes, rotas base e configuracoes da aplicacao.
+- **api_client.py:** Isolamento das chamadas HTTP e comunicacao direta com a API FastAPI.
+- **styles.py:** Definicoes de CSS escuro responsivo e graficos vetoriais do assistente.
+- **components.py:** Renderizacao desacoplada da barra superior, hero, chips de consulta e fontes.
+- **app.py:** Orquestracao do ciclo de vida da sessao, mensagens e estado do utilizador.
 
 ---
 
@@ -65,10 +67,13 @@ O fluxo cognitivo e estruturado como uma maquina de estados direcionada (`StateG
 .
 ├── docker-compose.yml
 ├── .env.example
+├── .gitignore
 ├── README.md
 ├── fiqa-rag-api/
 │   ├── Dockerfile
 │   ├── requirements.txt
+│   ├── config/
+│   ├── data/
 │   └── src/
 │       ├── main.py
 │       ├── controllers/
@@ -92,4 +97,8 @@ O fluxo cognitivo e estruturado como uma maquina de estados direcionada (`StateG
 └── fiqa-rag-ui/
     ├── Dockerfile
     ├── requirements.txt
-    └── app.py
+    ├── app.py
+    ├── api_client.py
+    ├── components.py
+    ├── config.py
+    └── styles.py
