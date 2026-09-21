@@ -10,6 +10,15 @@ MAIN_CSS = textwrap.dedent("""
 header[data-testid="stHeader"] {
     background-color: transparent !important;
 }
+
+/* Faixa inferior transparente */
+div[data-testid="stBottomBlockContainer"],
+footer,
+div[data-testid="stBottom"] {
+    background: transparent !important;
+    border: none !important;
+}
+
 .brand-badge {
     display: inline-flex;
     align-items: center;
@@ -89,12 +98,95 @@ header[data-testid="stHeader"] {
     padding: 1rem 1.3rem !important;
     margin-bottom: 0.85rem !important;
 }
+
+/* 1. Anular completamente o invólucro exterior para remover a moldura externa dupla */
 [data-testid="stChatInput"] {
-    background-color: #111522 !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 30px !important;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
+
+/* 2. Pílula única definida diretamente no contentor de escrita interior */
+[data-testid="stChatInput"] > div,
+[data-testid="stChatInput"] form {
+    background-color: #151a27 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45) !important;
+    padding: 4px 12px 4px 22px !important;
+    min-height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+[data-testid="stChatInput"] > div:focus-within,
+[data-testid="stChatInput"] form:focus-within {
+    border-color: #3b82f6 !important;
+    background-color: #182032 !important;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* 3. Forçar transparência estrita em todos os nós filhos internos (elimina a caixa cinzenta) */
+[data-testid="stChatInput"] [data-baseweb="base-input"],
+[data-testid="stChatInput"] [data-baseweb="textarea"],
+[data-testid="stChatInput"] div[class*="stChatInput"] div {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* 4. Tipografia da área de escrita */
+[data-testid="stChatInput"] textarea {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: #f8fafc !important;
+    font-size: 0.93rem !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 8px 0 !important;
+    line-height: 1.45 !important;
+    resize: none !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+/* 5. Botão de envio integrado e alinhado ao centro */
+[data-testid="stChatInput"] button {
+    border-radius: 50% !important;
+    background-color: #2563eb !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stChatInput"] button:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #3b82f6 !important;
+    transform: scale(1.06) !important;
+}
+
 div[data-testid="stExpander"] {
     background-color: #0d101b !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
