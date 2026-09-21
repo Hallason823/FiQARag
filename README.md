@@ -15,6 +15,18 @@ Sistema de Recuperacao Aumentada por Geracao (RAG) especializado em financas cor
 
 ---
 
+## Como Executar o Projeto (Guia Rapido)
+
+### 1.Configuracao de Variaveis
+Crie o arquivo `.env` na raiz a partir do modelo e configure sua chave da Groq:
+```bash
+cp .env.example .env
+# Defina GROQ_API_KEY=gsk_... dentro do .env
+
+### 2. Execucao via Docker Compose
+docker compose up --build -d
+docker compose logs -f fiqa-rag-api
+
 ## Matriz de Conformidade com os Requisitos da Atividade
 
 | Requisito Solicitado | Implementacao no Projeto | Status |
