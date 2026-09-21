@@ -1,5 +1,7 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class AnalysisRequest(BaseModel):
     query: str
-    search_limit: int = None
+    task_id: str = "default_task"
+    search_limit: Optional[int] = 5

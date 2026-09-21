@@ -18,6 +18,7 @@ class SourceDatasetRepository(LoggerMixIn):
     #Downloads the complete financial document corpus and maps the IDs to their corresponding text data.
     def get_raw_documents(self) -> Dict[str, Dict[str, Any]]:
         dataset = self._load_dataset_split(self._settings.CORPUS_DATASET_REGISTRY, self._settings.CORPUS_SPLIT_KEY)
+        dataset = dataset.select(range(1000))
         return {str(document["_id"]): {"title": document.get("title", ""), "text": document.get("text", "")} for document in dataset}
     
     #Downloads the financial test questions/queries and indexes them by their string ID.

@@ -1,0 +1,24 @@
+services:
+  fiqa-rag-api:
+    build:
+      context: ./fiqa-rag-api
+      dockerfile: Dockerfile
+    container_name: fiqa-rag-api
+    network_mode: host
+    env_file:
+      - .env
+    volumes:
+      - ./fiqa-rag-api/data:/app/data
+    restart: unless-stopped
+
+  fiqa-rag-ui:
+    build:
+      context: ./fiqa-rag-ui
+      dockerfile: Dockerfile
+    container_name: fiqa-rag-ui
+    network_mode: host
+    environment:
+      - API_BASE_URL=http://localhost:8000
+    depends_on:
+      - fiqa-rag-api
+    restart: unless-stopped
