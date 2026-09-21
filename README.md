@@ -2,6 +2,8 @@
 
 Sistema de Recuperacao Aumentada por Geracao (RAG) especializado em financas corporativas, investimentos e contabilidade, desenvolvido com FastAPI, LangGraph, FAISS, Groq (Llama-3) e Streamlit, com empacotamento completo em Docker.
 
+![Interface do Sistema FiQA RAG](tela.png)
+
 ---
 
 ## Integrantes da Equipe
