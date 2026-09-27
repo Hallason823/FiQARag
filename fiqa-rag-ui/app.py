@@ -48,7 +48,7 @@ if len(st.session_state.messages) == 0:
 
 render_chat_history(st.session_state.messages)
 
-user_prompt = st.chat_input("Faca uma pergunta sobre financas, tributos ou empresas...")
+user_prompt = st.chat_input("Faça uma pergunta sobre financas, tributos ou empresas...")
 active_query = user_prompt or st.session_state.selected_query
 
 if active_query:
