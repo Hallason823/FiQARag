@@ -6,6 +6,6 @@ class FinancialAnalystState(TypedDict, total=False):
     top_k: int
     conversation_history: str
     retrieved_chunks: List[Dict[str, Any]]
-    score_maximo: float
+    max_score: float
     formatted_context: str
     generated_answer: str

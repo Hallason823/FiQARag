@@ -21,7 +21,7 @@ st.set_page_config(
 st.markdown(MAIN_CSS, unsafe_allow_html=True)
 
 if "task_id" not in st.session_state:
-    st.session_state.task_id = str(uuid.uuid4())[:8]
+    st.session_state.task_id = str(uuid.uuid4())
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -30,7 +30,7 @@ if "selected_query" not in st.session_state:
     st.session_state.selected_query = None
 
 def reset_session():
-    st.session_state.task_id = str(uuid.uuid4())[:8]
+    st.session_state.task_id = str(uuid.uuid4())
     st.session_state.messages = []
     st.session_state.selected_query = None
     st.rerun()

@@ -11,6 +11,7 @@ class ApplicationSettings:
     EMBEDDING_MODEL_REGISTRY: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     INITIAL_SCORE_VALUE: float = 0.0
     PROMPT_CONFIG_FILE_PATH: str = os.path.join("config", "market_analyst_prompts.json")
+    ABSTENTION_MESSAGE: str = "I could not find this information in the consulted database."
 
     @property
     def groq_api_key(self) -> str:
@@ -51,3 +52,7 @@ class ApplicationSettings:
     @property
     def evidence_threshold_score(self) -> float:
         return float(os.getenv("EVIDENCE_THRESHOLD_SCORE", "0.5"))
+        
+    @property
+    def max_history_exchanges(self) -> int:
+        return int(os.getenv("MAX_HISTORY_EXCHANGES", "4"))

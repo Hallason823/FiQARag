@@ -16,7 +16,7 @@ class MarketKnowledgeRepository(LoggerMixIn):
         if not structured_chunks:
             return
         self._logger.info(f"Generating semantic embeddings for {len(structured_chunks)} chunks.")
-        chunk_texts_list = [chunk["texto"] for chunk in structured_chunks]
+        chunk_texts_list = [chunk["text"] for chunk in structured_chunks]
         computed_embeddings = self._embedding_model.encode(chunk_texts_list, normalize_embeddings=True).astype("float32")
         vector_dimension = computed_embeddings.shape[1]
         self._vector_index = faiss.IndexFlatIP(vector_dimension)

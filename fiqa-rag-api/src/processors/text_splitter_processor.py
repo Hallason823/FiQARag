@@ -16,7 +16,7 @@ class TextSplitterProcessor(LoggerMixIn):
             window_start_index += self._settings.default_chunk_size - self._settings.default_chunk_overlap
 
     def _build_chunk_payload(self, document_id: str, title: str, text: str, sequence_number: int) -> Dict[str, Any]:
-        return {"chunk_id": f"{document_id}_c{sequence_number}", "documento_id": document_id, "titulo": title, "texto": text}
+        return {"chunk_id": f"{document_id}_c{sequence_number}", "document_id": document_id, "title": title, "text": text}
 
     def split_text(self, document_id: str, title: str, text: str) -> List[Dict[str, Any]]:
         self._logger.info(f"Executing chunking process for document ID: '{document_id}'")
