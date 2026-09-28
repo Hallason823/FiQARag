@@ -12,6 +12,7 @@ class ApplicationSettings:
     INITIAL_SCORE_VALUE: float = 0.0
     PROMPTS_DIRECTORY: str = os.path.join("config", "prompts")
     ABSTENTION_MESSAGE: str = "I could not find this information in the consulted database."
+    OUT_OF_DOMAIN_MESSAGE: str = "This question is outside the scope of this assistant, which answers questions about personal finance, investing, taxes, banking and business."
 
     @property
     def groq_api_key(self) -> str:
@@ -28,6 +29,10 @@ class ApplicationSettings:
     @property
     def max_completion_tokens(self) -> int:
         return int(os.getenv("MAX_TOKENS", "300"))
+
+    @property
+    def classification_max_tokens(self) -> int:
+        return int(os.getenv("CLASSIFICATION_MAX_TOKENS", "150"))
 
     @property
     def reasoning_effort_level(self) -> str:
@@ -55,7 +60,7 @@ class ApplicationSettings:
         
     @property
     def prompt_version(self) -> str:
-        return os.getenv("PROMPT_VERSION", "v1.0.0__baseline")
+        return os.getenv("PROMPT_VERSION", "v3.0.0__decomposed")
 
     @property
     def prompt_config_file_path(self) -> str:
