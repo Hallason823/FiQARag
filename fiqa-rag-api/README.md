@@ -1,52 +1,103 @@
 # FiQA Agentic RAG API Backend
 
-An advanced, production-grade financial document analysis backend built with **FastAPI** and orchestrated using **LangGraph**. The system ingests the scientific **FiQA financial dataset** from Hugging Face, slices it into overlapping text chunks via a custom sliding window processor, indexes it into a high-performance semantic vector store utilizing **Meta's FAISS**, and dispatches contextual queries to the **Groq API (llm)** using an agentic workflow state engine.
+A financial question-answering backend built with **FastAPI** and orchestrated with **LangGraph**. The system ingests the **FiQA financial dataset** from Hugging Face, splits it into overlapping chunks with a sliding window processor, indexes them in a **FAISS** vector store, and answers questions through a chain of specialized prompts sent to the **Groq API**: question classification, answer generation and answer verification.
 
 ## Layered Software Architecture
 
-The project adheres strictly to the **Controller-Service-Repository** pattern and the **Single Responsibility Principle (SRP)**, completely decoupling business rules from external infrastructure gateways and APIs:
+The project follows the **Controller-Service-Repository** pattern and the **Single Responsibility Principle (SRP)**:
 
-*   **`src/controllers/`**: Manages HTTP web entries, schema data validations (Pydantic), and REST endpoint definitions.
-*   **`src/services/`**: Houses core business workflow logic, state transitions, conditional routing algorithms, and compiles the agent graph architecture via LangGraph.
-*   **`src/repositories/`**: Gateway layer handling outbound data connection integrations, such as database storage execution (FAISS) and external text generation network APIs (Groq).
-*   **`src/processors/`**: Reusable standalone infrastructure utilities, including dynamic cross-cutting log injectors and text chunk splitters.
-*   **`src/models/`**: Centralized object models defining dynamic configuration settings and the agent runtime data storage contracts.
+*   **`src/controllers/`**: HTTP entry points, request validation (Pydantic) and REST endpoint definitions.
+*   **`src/services/`**: Business workflow, conditional routing and the LangGraph agent graph.
+*   **`src/repositories/`**: Gateways to external resources: the FAISS index, the Hugging Face dataset and the Groq API, including the loading of the versioned prompt catalog.
+*   **`src/processors/`**: Reusable utilities: logging mixin, text splitter, database seeder and the structured output (JSON) parser.
+*   **`src/models/`**: Settings, the graph state contract and the Pydantic models that validate the classifier and verifier outputs.
 
 ## LangGraph Workflow Execution Pipeline
 
-Rather than executing a standard linear sequential query, this application abstracts the RAG pipeline into an isolated stateful graph execution runtime. Every phase operates inside an independent state node:
-
 ```text
-                       +--> build_context_node --> generate_answer_node --> END
-                       |
-START --> retrieve --> decision (Score >= 0.50?)
-                       |
-                       +--> handle_abstention_node ------------------------> END
+START → classify ─┬─ out of domain → handle_out_of_domain → END
+                  └─ in domain → retrieve ─┬─ low score → handle_abstention → END
+                                           └─ score ok → build_context → generate
+                                                  ├─ LLM abstained → END
+                                                  └─ answer generated → verify
+                                                         ├─ accepted → END
+                                                         └─ rejected → handle_rejected_answer → END
 ```
 
-1.  **`retrieve_knowledge_node`**: Fetches semantic content vectors from the local FAISS memory cache.
-2.  **`evaluate_evidence_routing`**: A conditional routing gate checking if the highest retrieval match satisfies the minimum threshold parameter (`0.50`).
-3.  **`build_context_node` / `handle_abstention_node`**: Routes toward dynamic contextual string building if evidence exists, or fast-tracks directly to an explicit failure response, saving unnecessary API token costs.
-4.  **`generate_answer_node`**: Transmits the structured payload matrix to the Groq/Qwen endpoint using isolated JSON prompt rules.
+1.  **`classify_question_node`**: Sends the question and the task history to the `classification` prompt. The JSON output is validated with `QuestionClassification`.
+2.  **`evaluate_domain_routing`**: Routes out-of-domain questions (medium or high confidence) to a dedicated answer without retrieval or generation.
+3.  **`retrieve_knowledge_node`**: Fetches the most similar chunks from the FAISS index.
+4.  **`evaluate_evidence_routing`**: Abstains without calling the LLM when the best score is below `EVIDENCE_THRESHOLD_SCORE`.
+5.  **`build_context_node`**: Formats each chunk with the `document_template` of the loaded prompt version.
+6.  **`generate_answer_node`**: Sends the history, documents and question, each in its own delimited region, to the `generation` prompt. Flags the answer as `INSUFFICIENT_EVIDENCE` when the LLM abstains.
+7.  **`verify_answer_node`**: Sends the documents, question and answer to the `verification` prompt. The JSON output is validated with `AnswerVerification`.
+8.  **`evaluate_verification_routing`**: Replaces answers that are `NOT_SUPPORTED` or that followed instructions embedded in the documents with the abstention message.
 
-## Centralized PromptOps & Configuration
+The classification and verification nodes only run when the loaded prompt version contains the corresponding prompt, so the same code runs every prompt version.
 
-*   **Centralized Properties (`ApplicationSettings`)**: All system constants, math parameters, and connection metrics are consolidated into a single object model. Hardcoded values are eliminated.
-*   **Dynamic Configurations (`.env`)**: Fine-tuning variables like chunk size, overlap ratios, top_k limits, temperature, or routing thresholds can be modified live without modifying code files.
-*   **Decoupled Prompts (`config/market_analyst_prompts.json`)**: System instructions and context formatting templates are isolated into an external structured schema file to facilitate easy updates.
+## Versioned Prompt Catalog
 
+Prompts live in `config/prompts/`, one JSON file per version, selected with `PROMPT_VERSION`. Each file maps a responsibility (`classification`, `generation`, `verification`) to its `system` prompt, `user_template` and optional templates:
+
+| Version | Prompts | Change from the previous version |
+| :-- | :-- | :-- |
+| `v1.0.0__baseline` | `generation` | Original prompt, kept as the comparison baseline |
+| `v2.0.0__zero_shot` | `generation` | Role, task, numbered rules, security section, abstention criteria, output format and XML delimiters |
+| `v2.1.0__few_shot` | `generation` | Same as v2.0.0 plus four examples built from real FiQA excerpts |
+| `v3.0.0__decomposed` | `classification`, `generation` | Adds the question classifier |
+| `v4.0.0__verified` | `classification`, `generation`, `verification` | Adds the answer verifier |
+
+Versioning rule: **MAJOR** for structural changes that require code (new regions or prompts), **MINOR** for new rules or examples, **PATCH** for wording fixes.
+
+## Centralized Configuration
+
+*   **`ApplicationSettings`**: Centralizes constants (abstention and out-of-domain messages, dataset names, embedding model) and environment-driven properties.
+*   **`.env`**: Chunk size, overlap, top_k, temperature, token limits, evidence threshold and prompt version can be changed without modifying code.
+
+## API Contract
+
+`POST /api/v1/financial/ask`
+
+Request:
+
+```json
+{"query": "How does inflation affect corporate bond yields?", "task_id": "a1b2c3d4", "search_limit": 5}
+```
+
+Response:
+
+```json
+{
+  "query": "How does inflation affect corporate bond yields?",
+  "task_id": "a1b2c3d4",
+  "answer": "... [Source 1]\n\nSources: [Source 1]",
+  "sources": [{"doc_id": "18850", "content": "..."}],
+  "classification": {"in_domain": true, "category": "INVESTING", "confidence": "HIGH", "contains_instructions": false, "reason": "..."},
+  "verification": {"verdict": "SUPPORTED", "follows_embedded_instructions": false, "unsupported_claims": [], "reason": "..."},
+  "abstention_reason": null
+}
+```
+
+`abstention_reason` is one of `OUT_OF_DOMAIN`, `LOW_RETRIEVAL_SCORE`, `INSUFFICIENT_EVIDENCE`, `UNSUPPORTED_ANSWER`, `EMBEDDED_INSTRUCTIONS_FOLLOWED`, or `null` when the question was answered. Abstentions return no sources and are not saved to the task history. `classification` and `verification` are `null` when the prompt version has no classifier or verifier.
+
+Other endpoints:
+
+*   `GET /api/v1/financial/tasks/{task_id}/history`: Returns the stored exchanges of a task.
+*   `DELETE /api/v1/financial/tasks/{task_id}`: Clears the memory of a task.
 
 ## Getting Started
 
 ### 1. Configure the Environment Variables
 
-Create a `.env` file in the root directory and map the parameters according to your specific environment structure:
+Create a `.env` file in the project root:
 
 ```text
 GROQ_API_KEY=<secret_groq_api_key>
 GROQ_MODEL_NAME=qwen/qwen3.8-27b
 MODEL_TEMPERATURE=0.0
 MAX_TOKENS=300
+CLASSIFICATION_MAX_TOKENS=150
+VERIFICATION_MAX_TOKENS=200
 REASONING_EFFORT=none
 DEFAULT_CHUNK_SIZE=55
 DEFAULT_CHUNK_OVERLAP=12
@@ -54,46 +105,41 @@ DEFAULT_TOP_K=3
 DEFAULT_SEARCH_LIMIT=3
 EVIDENCE_THRESHOLD_SCORE=0.5
 MAX_HISTORY_EXCHANGES=4
-PROMPT_VERSION=v3.0.0__decomposed
+PROMPT_VERSION=v4.0.0__verified
 ```
 
 ### 2. Local Setup and Execution
 
-Install the dependencies into your environment:
+Install the dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Launch the unified entrypoint script to execute the bulk database seeder task manager and lift the API server online:
+Start the API from the `fiqa-rag-api/` directory, so the relative path to `config/prompts/` resolves correctly:
 
 ```bash
-python src/main.py
+uvicorn src.main:app --host 0.0.0.0 --port 8000
 ```
+
+The database seeding (download, chunking and embedding) runs before the server starts accepting requests.
 
 ### 3. Containerized Setup via Docker
 
-Build the lightweight container image locally:
+From the project root:
 
 ```bash
-docker build -t fiqa-rag-api .
+docker compose up --build -d fiqa-rag-api
+docker compose logs -f fiqa-rag-api
 ```
 
-Run the container instance while injecting your environment configurations:
+The API is ready when the log prints `Database seeding execution completed successfully`. After changing `PROMPT_VERSION` or any source file, rebuild and recreate the container:
 
 ```bash
-docker run -d --name fiqa-backend-service -p 8000:8000 --env-file .env fiqa-rag-api
+docker compose up -d --force-recreate --build fiqa-rag-api
 ```
-
-Monitor the background database seeding task and matrix computation progress:
-
-```bash
-docker logs -f fiqa-backend-service
-```
-
-Once the logging prints that the FAISS index is successfully populated, the Uvicorn web engine will activate the server on port `8000`.
 
 ### 4. Test the REST Interface
-Access the native interactive API interface in the web browser:
-*   **Swagger Documentation Link**: `http://localhost:8000/api/docs`
-*   **API Target REST Endpoint**: `POST http://localhost:8000/api/v1/financial/ask`
+
+*   **Swagger documentation**: `http://localhost:8000/api/docs`
+*   **Question endpoint**: `POST http://localhost:8000/api/v1/financial/ask`

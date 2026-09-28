@@ -59,7 +59,7 @@ if active_query:
         st.markdown(active_query)
 
     with st.chat_message("assistant"):
-        with st.spinner("A consultar base vetorial e a gerar sintese com Llama-3..."):
+        with st.spinner("Classificando a pergunta, consultando a base e verificando a resposta...")::
             success, response_data = FinancialApiClient.ask_analyst(
                 query=active_query,
                 task_id=st.session_state.task_id,
