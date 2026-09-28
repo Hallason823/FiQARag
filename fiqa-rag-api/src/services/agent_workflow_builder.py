@@ -27,15 +27,11 @@ class AgentWorkflowBuilder(LoggerMixIn):
 
     def build_context_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
         chunks_list = state.get("retrieved_chunks", [])
-        compiled_context = "\n\n".join([f"[Source {index}] {chunk['text']}" for index, chunk in enumerate(chunks_list, start=1)])
+        compiled_context = "\n\n".join([self._llm_repository.format_document(index, chunk) for index, chunk in enumerate(chunks_list, start=1)])
         return {"formatted_context": compiled_context}
 
     def generate_answer_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
-        user_query = state["query"]
-        context_data = state.get("formatted_context", "")
-        history = state.get("conversation_history", "")
-        full_context = (f"CONVERSATION HISTORY FOR THIS TASK:\n{history}\n\n" f"RETRIEVED DOCUMENTS FROM THE FIQA DATABASE:\n{context_data}") if history else context_data
-        model_response = self._llm_repository.execute_text_generation(user_query=user_query, retrieved_context=full_context)
+        model_response = self._llm_repository.execute_text_generation(user_query=state["query"], retrieved_context=state.get("formatted_context", ""), conversation_history=state.get("conversation_history", ""))
         return {"generated_answer": model_response}
 
     def handle_abstention_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
