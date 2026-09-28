@@ -10,4 +10,5 @@ class FinancialAnalystState(TypedDict, total=False):
     max_score: float
     formatted_context: str
     generated_answer: str
+    verification: Dict[str, Any]
     abstention_reason: str

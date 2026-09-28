@@ -8,6 +8,7 @@ class LanguageModelRepository(LoggerMixIn):
 
     GENERATION_PROMPT_KEY: str = "generation"
     CLASSIFICATION_PROMPT_KEY: str = "classification"
+    VERIFICATION_PROMPT_KEY: str = "verification"
     SYSTEM_KEY: str = "system"
     USER_TEMPLATE_KEY: str = "user_template"
     DOCUMENT_TEMPLATE_KEY: str = "document_template"
@@ -67,3 +68,9 @@ class LanguageModelRepository(LoggerMixIn):
         formatted_user_prompt = classification_prompt[self.USER_TEMPLATE_KEY].format(history=history_text, query=user_query)
         messages = [{"role": "system", "content": classification_prompt[self.SYSTEM_KEY]}, {"role": "user", "content": formatted_user_prompt}]
         return self._execute_chat_completion(messages=messages, max_tokens=self._settings.classification_max_tokens, stage_name="classification")
+
+    def execute_answer_verification(self, user_query: str, retrieved_context: str, generated_answer: str) -> str:
+        verification_prompt = self.get_prompt(self.VERIFICATION_PROMPT_KEY)
+        formatted_user_prompt = verification_prompt[self.USER_TEMPLATE_KEY].format(context=retrieved_context, query=user_query, answer=generated_answer)
+        messages = [{"role": "system", "content": verification_prompt[self.SYSTEM_KEY]}, {"role": "user", "content": formatted_user_prompt}]
+        return self._execute_chat_completion(messages=messages, max_tokens=self._settings.verification_max_tokens, stage_name="verification")

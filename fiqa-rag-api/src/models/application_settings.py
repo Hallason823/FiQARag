@@ -31,6 +31,10 @@ class ApplicationSettings:
         return int(os.getenv("MAX_TOKENS", "300"))
 
     @property
+    def verification_max_tokens(self) -> int:
+        return int(os.getenv("VERIFICATION_MAX_TOKENS", "200"))
+
+    @property
     def classification_max_tokens(self) -> int:
         return int(os.getenv("CLASSIFICATION_MAX_TOKENS", "150"))
 
@@ -57,10 +61,10 @@ class ApplicationSettings:
     @property
     def evidence_threshold_score(self) -> float:
         return float(os.getenv("EVIDENCE_THRESHOLD_SCORE", "0.5"))
-        
+
     @property
     def prompt_version(self) -> str:
-        return os.getenv("PROMPT_VERSION", "v3.0.0__decomposed")
+        return os.getenv("PROMPT_VERSION", "v4.0.0__verified")
 
     @property
     def prompt_config_file_path(self) -> str:

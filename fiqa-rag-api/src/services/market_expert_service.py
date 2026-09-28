@@ -23,4 +23,4 @@ class MarketExpertService(LoggerMixIn):
         if abstention_reason is None:
             self._memory_service.add_exchange(task_id, query, answer)
         sources = [] if abstention_reason else [{"doc_id": chunk.get("document_id", "N/A"), "content": chunk.get("text", "")} for chunk in final_state.get("retrieved_chunks", [])]
-        return {"query": query, "task_id": task_id, "answer": answer, "sources": sources, "classification": final_state.get("classification"), "abstention_reason": abstention_reason}
+        return {"query": query, "task_id": task_id, "answer": answer, "sources": sources, "classification": final_state.get("classification"), "verification": final_state.get("verification"), "abstention_reason": abstention_reason}
