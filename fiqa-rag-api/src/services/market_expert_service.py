@@ -16,8 +16,11 @@ class MarketExpertService(LoggerMixIn):
         history = self._memory_service.get_formatted_history(task_id)
         initial_state = {"query": query, "task_id": task_id, "top_k": search_limit, "conversation_history": history}
         final_state = self._workflow.invoke(initial_state)
-        answer = final_state.get("generated_answer", "No response generated.")
-        if answer != ApplicationSettings.ABSTENTION_MESSAGE:
+        answer = (final_state.get("generated_answer") or "No response generated.").strip()
+        abstention_reason = final_state.get("abstention_reason")
+        if abstention_reason is None and answer == ApplicationSettings.ABSTENTION_MESSAGE:
+            abstention_reason = "INSUFFICIENT_EVIDENCE"
+        if abstention_reason is None:
             self._memory_service.add_exchange(task_id, query, answer)
-        sources = [{"doc_id": chunk.get("document_id", "N/A"), "content": chunk.get("text", "")} for chunk in final_state.get("retrieved_chunks", [])]
-        return {"query": query, "task_id": task_id, "answer": answer, "sources": sources}
+        sources = [] if abstention_reason else [{"doc_id": chunk.get("document_id", "N/A"), "content": chunk.get("text", "")} for chunk in final_state.get("retrieved_chunks", [])]
+        return {"query": query, "task_id": task_id, "answer": answer, "sources": sources, "classification": final_state.get("classification"), "abstention_reason": abstention_reason}
