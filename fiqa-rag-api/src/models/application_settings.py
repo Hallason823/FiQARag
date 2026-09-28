@@ -55,7 +55,7 @@ class ApplicationSettings:
         
     @property
     def prompt_version(self) -> str:
-        return os.getenv("PROMPT_VERSION", "v1.0.0_baseline")
+        return os.getenv("PROMPT_VERSION", "v1.0.0__baseline")
 
     @property
     def prompt_config_file_path(self) -> str:
