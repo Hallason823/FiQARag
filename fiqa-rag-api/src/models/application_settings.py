@@ -10,7 +10,7 @@ class ApplicationSettings:
     TEST_PARTITION_KEY: str = "test"
     EMBEDDING_MODEL_REGISTRY: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     INITIAL_SCORE_VALUE: float = 0.0
-    PROMPT_CONFIG_FILE_PATH: str = os.path.join("config", "market_analyst_prompts.json")
+    PROMPTS_DIRECTORY: str = os.path.join("config", "prompts")
     ABSTENTION_MESSAGE: str = "I could not find this information in the consulted database."
 
     @property
@@ -53,6 +53,14 @@ class ApplicationSettings:
     def evidence_threshold_score(self) -> float:
         return float(os.getenv("EVIDENCE_THRESHOLD_SCORE", "0.5"))
         
+    @property
+    def prompt_version(self) -> str:
+        return os.getenv("PROMPT_VERSION", "v1.0.0_baseline")
+
+    @property
+    def prompt_config_file_path(self) -> str:
+        return os.path.join(self.PROMPTS_DIRECTORY, f"{self.prompt_version}.json")
+
     @property
     def max_history_exchanges(self) -> int:
         return int(os.getenv("MAX_HISTORY_EXCHANGES", "4"))
