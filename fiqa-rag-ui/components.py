@@ -2,11 +2,11 @@ import textwrap
 import streamlit as st
 from styles import ROBOT_SVG
 
-def render_top_bar(task_id: str, is_online: bool, on_reset_callback):
+def render_top_bar(task_id: str, is_online: bool, prompt_versions, on_prompt_version_change, on_reset_callback):
     status_class = "status-ok" if is_online else "status-off"
     status_label = "Online" if is_online else "Offline"
 
-    col1, col2 = st.columns([8, 2])
+    col1, col2, col3 = st.columns([5.5, 3, 1.5])
     with col1:
         st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 10px; padding: 0.2rem 0;">
@@ -17,6 +17,23 @@ def render_top_bar(task_id: str, is_online: bool, on_reset_callback):
         """, unsafe_allow_html=True)
 
     with col2:
+        if prompt_versions:
+            st.selectbox(
+                "Versão do catálogo de prompts",
+                options=prompt_versions,
+                key="prompt_version_selector",
+                on_change=on_prompt_version_change,
+                help="A troca de versão inicia uma nova conversa para evitar mistura de históricos."
+            )
+        else:
+            st.text_input(
+                "Versão do catálogo de prompts",
+                value="Padrão definido pela API",
+                disabled=True
+            )
+
+    with col3:
+        st.write("")
         if st.button("Nova Conversa", use_container_width=True):
             on_reset_callback()
 

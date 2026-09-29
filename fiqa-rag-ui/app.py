@@ -29,18 +29,62 @@ if "messages" not in st.session_state:
 if "selected_query" not in st.session_state:
     st.session_state.selected_query = None
 
+api_online = FinancialApiClient.check_health()
+versions_success, versions_data = FinancialApiClient.get_prompt_versions() if api_online else (False, {})
+
+if versions_success:
+    available_prompt_versions = [
+        version
+        for version in versions_data.get("versions", [])
+        if isinstance(version, str)
+    ]
+    default_prompt_version = versions_data.get("default")
+
+    if default_prompt_version not in available_prompt_versions:
+        default_prompt_version = available_prompt_versions[0] if available_prompt_versions else None
+
+    st.session_state.available_prompt_versions = available_prompt_versions
+    st.session_state.default_prompt_version = default_prompt_version
+else:
+    available_prompt_versions = st.session_state.get("available_prompt_versions", [])
+    default_prompt_version = st.session_state.get("default_prompt_version")
+
+if available_prompt_versions:
+    selected_prompt_version = st.session_state.get("prompt_version")
+    if selected_prompt_version not in available_prompt_versions:
+        selected_prompt_version = default_prompt_version or available_prompt_versions[0]
+        st.session_state.prompt_version = selected_prompt_version
+
+    if st.session_state.get("prompt_version_selector") not in available_prompt_versions:
+        st.session_state.prompt_version_selector = selected_prompt_version
+
 def reset_session():
     st.session_state.task_id = str(uuid.uuid4())
     st.session_state.messages = []
     st.session_state.selected_query = None
     st.rerun()
 
+def handle_prompt_version_change():
+    selected_prompt_version = st.session_state.get("prompt_version_selector")
+    if selected_prompt_version == st.session_state.get("prompt_version"):
+        return
+
+    st.session_state.prompt_version = selected_prompt_version
+    st.session_state.task_id = str(uuid.uuid4())
+    st.session_state.messages = []
+    st.session_state.selected_query = None
+
 def handle_query_selection(query_text: str):
     st.session_state.selected_query = query_text
     st.rerun()
 
-api_online = FinancialApiClient.check_health()
-render_top_bar(st.session_state.task_id, api_online, reset_session)
+render_top_bar(
+    task_id=st.session_state.task_id,
+    is_online=api_online,
+    prompt_versions=available_prompt_versions,
+    on_prompt_version_change=handle_prompt_version_change,
+    on_reset_callback=reset_session
+)
 
 if len(st.session_state.messages) == 0:
     render_hero_section()
@@ -48,7 +92,7 @@ if len(st.session_state.messages) == 0:
 
 render_chat_history(st.session_state.messages)
 
-user_prompt = st.chat_input("Faça uma pergunta sobre financas, tributos ou empresas...")
+user_prompt = st.chat_input("Fa�a uma pergunta sobre financas, tributos ou empresas...")
 active_query = user_prompt or st.session_state.selected_query
 
 if active_query:
@@ -63,7 +107,8 @@ if active_query:
             success, response_data = FinancialApiClient.ask_analyst(
                 query=active_query,
                 task_id=st.session_state.task_id,
-                limit=5
+                limit=5,
+                prompt_version=st.session_state.get("prompt_version")
             )
 
             if success:
@@ -82,13 +127,14 @@ if active_query:
                         for idx, src in enumerate(sources, start=1):
                             doc_id = src.get("doc_id", "N/A")
                             text = src.get("content") or src.get("text", "")
-                            st.markdown(f"**Fonte {idx} — Doc ID:** `{doc_id}`")
+                            st.markdown(f"**Fonte {idx} - Doc ID:** `{doc_id}`")
                             st.info(text)
 
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": answer,
-                    "sources": sources
+                    "sources": sources,
+                    "prompt_version": response_data.get("prompt_version")
                 })
             else:
                 error_msg = response_data.get("error", "Erro desconhecido na execucao.")
