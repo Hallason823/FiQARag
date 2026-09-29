@@ -250,7 +250,7 @@ _O resumo dos resultados será adicionado aqui após a execução dos testes._
 
 O sistema opera sob uma arquitetura desacoplada em duas camadas principais (API e UI), orquestradas via rede interna do Docker.
 
-![Fluxo de uma pergunta pelas classes](doc/v1.0.0__fiqa_rag_class_request_flow.png)
+![Fluxo de uma pergunta pelas classes](doc/v2.0.0__fiqa_rag_class_request_flow.png)
 
 ### 1. Ingestão e Indexação Vetorial (FAISS)
 
@@ -313,6 +313,7 @@ Detalhes em `fiqa-rag-ui/README.md`.
 │   ├── HISTORY.md
 │   ├── v1.0.0__screen.png
 │   ├── v1.0.0__fiqa_rag_class_request_flow.png
+│   ├── v2.0.0__fiqa_rag_class_request_flow.png
 │   └── output/
 │       ├── COMPARISON.md
 │       └── <PROMPT_VERSION>.json
