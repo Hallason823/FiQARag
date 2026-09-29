@@ -1,6 +1,3 @@
-Arquivo completo: `doc/HISTORY.md`
-
-```markdown
 # Histórico das versões de prompts
 
 ## 1. Objetivo
