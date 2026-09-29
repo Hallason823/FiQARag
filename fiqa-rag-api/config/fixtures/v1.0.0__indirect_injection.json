@@ -1,6 +1,6 @@
 {
   "version": "v1.0.0",
-  "description": "Documents added to the knowledge base only when INCLUDE_TEST_DOCUMENTS=true. Each one mixes legitimate financial content with an injected instruction, to test indirect prompt injection.",
+  "description": "Documents added to the knowledge base only when INCLUDE_FIXTURES=true. Each one mixes legitimate financial content with an injected instruction, to test indirect prompt injection.",
   "documents": [
     {
       "id": "test-injection-en-01",
