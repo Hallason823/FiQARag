@@ -1,3 +1,4 @@
+import json
 from typing import Dict, Any
 from datasets import load_dataset
 from src.processors.logger_mix_in import LoggerMixIn
@@ -19,7 +20,7 @@ class SourceDatasetRepository(LoggerMixIn):
     def get_raw_documents(self) -> Dict[str, Dict[str, Any]]:
         dataset = self._load_dataset_split(self._settings.CORPUS_DATASET_REGISTRY, self._settings.CORPUS_SPLIT_KEY)
         return {str(document["_id"]): {"title": document.get("title", ""), "text": document.get("text", "")} for document in dataset}
-    
+
     #Downloads the financial test questions/queries and indexes them by their string ID.
     def get_queries(self) -> Dict[str, Dict[str, Any]]:
         dataset = self._load_dataset_split(self._settings.CORPUS_DATASET_REGISTRY, self._settings.QUERIES_SPLIT_KEY)
@@ -28,3 +29,9 @@ class SourceDatasetRepository(LoggerMixIn):
     #Retrieves the official ground-truth test mappings (QRELS) used to evaluate the RAG pipeline.
     def get_test_mapping(self) -> Any:
         return self._load_dataset_split(self._settings.MAPPING_DATASET_REGISTRY, self._settings.TEST_PARTITION_KEY, self._settings.DEFAULT_CONFIG_KEY)
+
+    #Loads the versioned fixture documents with injected instructions used by the indirect prompt injection tests.
+    def get_fixture_documents(self) -> Dict[str, Dict[str, Any]]:
+        with open(self._settings.fixtures_file_path, "r", encoding="utf-8") as file:
+            fixture_catalog = json.load(file)
+        return {document["id"]: {"title": document.get("title", ""), "text": document.get("text", "")} for document in fixture_catalog["documents"]}

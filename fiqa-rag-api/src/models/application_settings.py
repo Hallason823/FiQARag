@@ -11,9 +11,10 @@ class ApplicationSettings:
     EMBEDDING_MODEL_REGISTRY: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     INITIAL_SCORE_VALUE: float = 0.0
     PROMPTS_DIRECTORY: str = os.path.join("config", "prompts")
+    FIXTURES_DIRECTORY: str = os.path.join("config", "fixtures")
     ABSTENTION_MESSAGE: str = "I could not find this information in the consulted database."
     OUT_OF_DOMAIN_MESSAGE: str = "This question is outside the scope of this assistant, which answers questions about personal finance, investing, taxes, banking and business."
-
+    
     @property
     def groq_api_key(self) -> str:
         return os.getenv("GROQ_API_KEY", "")
@@ -69,6 +70,18 @@ class ApplicationSettings:
     @property
     def prompt_config_file_path(self) -> str:
         return os.path.join(self.PROMPTS_DIRECTORY, f"{self.prompt_version}.json")
+
+    @property
+    def include_fixtures(self) -> bool:
+        return os.getenv("INCLUDE_FIXTURES", "false").strip().lower() == "true"
+
+    @property
+    def fixtures_version(self) -> str:
+        return os.getenv("FIXTURES_VERSION", "v1.0.0__indirect_injection")
+
+    @property
+    def fixtures_file_path(self) -> str:
+        return os.path.join(self.FIXTURES_DIRECTORY, f"{self.fixtures_version}.json")
 
     @property
     def max_history_exchanges(self) -> int:
