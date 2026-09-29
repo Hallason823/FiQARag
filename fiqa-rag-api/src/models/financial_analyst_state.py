@@ -3,6 +3,7 @@ from typing import List, Dict, Any, TypedDict
 class FinancialAnalystState(TypedDict, total=False):
     query: str
     task_id: str
+    prompt_version: str
     top_k: int
     conversation_history: str
     classification: Dict[str, Any]

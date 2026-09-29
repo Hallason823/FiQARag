@@ -28,10 +28,11 @@ class AgentWorkflowBuilder(LoggerMixIn):
         self._settings = ApplicationSettings()
 
     def classify_question_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
-        if not self._llm_repository.has_prompt(LanguageModelRepository.CLASSIFICATION_PROMPT_KEY):
+        prompt_version = state.get("prompt_version")
+        if not self._llm_repository.has_prompt(LanguageModelRepository.CLASSIFICATION_PROMPT_KEY, prompt_version):
             return {}
         try:
-            raw_output = self._llm_repository.execute_question_classification(user_query=state["query"], conversation_history=state.get("conversation_history", ""))
+            raw_output = self._llm_repository.execute_question_classification(user_query=state["query"], conversation_history=state.get("conversation_history", ""), prompt_version=prompt_version)
             classification = QuestionClassification.model_validate(self._output_parser.parse_json_object(raw_output))
         except (ValueError, ValidationError) as error:
             self._logger.warning(f"Invalid classifier output, continuing with fallback: {error}")
@@ -59,23 +60,24 @@ class AgentWorkflowBuilder(LoggerMixIn):
 
     def build_context_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
         chunks_list = state.get("retrieved_chunks", [])
-        compiled_context = "\n\n".join([self._llm_repository.format_document(index, chunk) for index, chunk in enumerate(chunks_list, start=1)])
+        prompt_version = state.get("prompt_version")
+        compiled_context = "\n\n".join([self._llm_repository.format_document(index, chunk, prompt_version) for index, chunk in enumerate(chunks_list, start=1)])
         return {"formatted_context": compiled_context}
 
     def generate_answer_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
-        model_response = self._llm_repository.execute_text_generation(user_query=state["query"], retrieved_context=state.get("formatted_context", ""), conversation_history=state.get("conversation_history", "")).strip()
+        model_response = self._llm_repository.execute_text_generation(user_query=state["query"], retrieved_context=state.get("formatted_context", ""), conversation_history=state.get("conversation_history", ""), prompt_version=state.get("prompt_version")).strip()
         if model_response == self._settings.ABSTENTION_MESSAGE:
             return {"generated_answer": model_response, "abstention_reason": "INSUFFICIENT_EVIDENCE"}
         return {"generated_answer": model_response}
 
     def evaluate_generation_routing(self, state: FinancialAnalystState) -> Literal["verify", "finish"]:
-        if state.get("abstention_reason") or not self._llm_repository.has_prompt(LanguageModelRepository.VERIFICATION_PROMPT_KEY):
+        if state.get("abstention_reason") or not self._llm_repository.has_prompt(LanguageModelRepository.VERIFICATION_PROMPT_KEY, state.get("prompt_version")):
             return "finish"
         return "verify"
 
     def verify_answer_node(self, state: FinancialAnalystState) -> FinancialAnalystState:
         try:
-            raw_output = self._llm_repository.execute_answer_verification(user_query=state["query"], retrieved_context=state.get("formatted_context", ""), generated_answer=state.get("generated_answer", ""))
+            raw_output = self._llm_repository.execute_answer_verification(user_query=state["query"], retrieved_context=state.get("formatted_context", ""), generated_answer=state.get("generated_answer", ""), prompt_version=state.get("prompt_version"))
             verification = AnswerVerification.model_validate(self._output_parser.parse_json_object(raw_output))
         except (ValueError, ValidationError) as error:
             self._logger.warning(f"Invalid verifier output, keeping the generated answer: {error}")
